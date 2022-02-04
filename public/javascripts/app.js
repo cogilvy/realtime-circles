@@ -1,13 +1,31 @@
 const circles = document.getElementById('circles');
+
+const socket = io();
+
+// listen to the server for the 'add-circle' event/message
+socket.on('add-circle', function(data) {
+  addCircle(data);
+});
+
+socket.on('clear-page', function() {
+  circles.innerHTML = '';
+});
+
 let initials = '';
 
 // Listen for clicks anywhere in the "section"
 circles.addEventListener('click', function(evt) {
-  addCircle(evt.clientX, evt.clientY, randomBetween(10,125), getRandomRGBA());
+  socket.emit('add-circle', {
+    initials,
+    x: evt.clientX,
+    y: evt.clientY,
+    dia: randomBetween(20, 150),
+    rgba: getRandomRGBA()
+  });
 });
 
 document.querySelector('button').addEventListener('click', function() {
-  circles.innerHTML = '';
+  socket.emit('clear-page');
 });
 
 do {
@@ -19,7 +37,7 @@ function getInitials() {
   return input ? input.toUpperCase() : '';
 }
 
-function addCircle(x, y, dia, rgba) {
+function addCircle({initials, x, y, dia, rgba}) {
   const el = document.createElement('div');
   el.style.left = x - Math.floor(dia / 2 + 0.5) + 'px';
   el.style.top = y - Math.floor(dia / 2 + 0.5) + 'px';
